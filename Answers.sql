@@ -141,14 +141,7 @@ CREATE TABLE order_history (
 -- If a country already exists (based on a unique key or primary key), update its name
 INSERT INTO country (country_name) 
 VALUES ('France'), ('Kenya'), ('Spain')
-ON DUPLICATE KEY UPDATE country_name = NEW.country_name; -- Update the country_name if a duplicate key is found
-
-
--- Insert countries into the 'country' table
--- If a country already exists (based on a unique key or primary key), update its name
-INSERT INTO country (country_name) 
-VALUES ('France'), ('Kenya'), ('Spain')
-ON DUPLICATE KEY UPDATE country_name = NEW.country_name; -- Update the country_name if a duplicate key is found
+ON DUPLICATE KEY UPDATE country_name = VALUES(country_name); -- Update the country_name if a duplicate key is found
 
 
 -- Insert addresses into the 'address' table
