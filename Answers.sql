@@ -142,3 +142,237 @@ CREATE TABLE order_history (
 INSERT INTO country (country_name) 
 VALUES ('France'), ('Kenya'), ('Spain')
 ON DUPLICATE KEY UPDATE country_name = NEW.country_name; -- Update the country_name if a duplicate key is found
+
+
+-- Insert countries into the 'country' table
+-- If a country already exists (based on a unique key or primary key), update its name
+INSERT INTO country (country_name) 
+VALUES ('France'), ('Kenya'), ('Spain')
+ON DUPLICATE KEY UPDATE country_name = NEW.country_name; -- Update the country_name if a duplicate key is found
+
+
+-- Insert addresses into the 'address' table
+-- Use a subquery to get the country_id for each address based on the country_name
+INSERT INTO address (street, city, postal_code, country_id)
+VALUES 
+    -- Insert an address in France
+    ('39 Rue Vincent Scotto', 'Tarbes', '', 
+     (SELECT country_id FROM country WHERE country_name = 'France')),
+    
+    -- Insert an address in Kenya
+    ('40 Haille Sellasie Avenue', 'Nairobi', '', 
+     (SELECT country_id FROM country WHERE country_name = 'Kenya')),
+    
+    -- Insert an address in Spain
+    ('1 Rue De Barcelona', 'Barcelona', '', 
+     (SELECT country_id FROM country WHERE country_name = 'Spain'));
+
+
+     -- Insert customers into the 'customer' table
+-- Each customer has a first name, last name, and a unique email address
+INSERT INTO customer (first_name, last_name, email)
+VALUES
+    -- Insert a customer named Louay Hamdache
+    ('Louay', 'Hamdache', 'louay@gmail.com'),
+    
+    -- Insert a customer named Leo Penuela
+    ('Leo', 'Penuela', 'leo@gmail.com'),
+    
+    -- Insert a customer named George Saitoti
+    ('George', 'Saitoti', 'george@gmail.com');
+
+
+        -- First, retrieve the address_status_id for the 'current' status
+    -- This assumes that the 'current' status already exists in the address_status table
+    SET @current_status = (SELECT address_status_id FROM address_status WHERE status_name = 'current');
+    
+    -- Link customers to their respective addresses in the 'customer_address' table
+    -- Use subqueries to fetch the customer_id and address_id dynamically
+    INSERT INTO customer_address (customer_id, address_id, address_status_id)
+    VALUES
+        -- Link Louay Hamdache to the address on Rue Vincent Scotto
+        ((SELECT customer_id FROM customer WHERE first_name = 'Louay' AND last_name = 'Hamdache'),
+         (SELECT address_id FROM address WHERE street LIKE '%Vincent Scotto%'), @current_status),
+         
+        -- Link Leo Penuela to the address on Haille Sellasie Avenue
+        ((SELECT customer_id FROM customer WHERE first_name = 'Leo' AND last_name = 'Penuela'),
+         (SELECT address_id FROM address WHERE street LIKE '%Haille Sellasie%'), @current_status),
+         
+        -- Link George Saitoti to the address on Rue De Barcelona
+        ((SELECT customer_id FROM customer WHERE first_name = 'George' AND last_name = 'Saitoti'),
+         (SELECT address_id FROM address WHERE street LIKE '%Barcelona%'), @current_status);
+
+--Inserting address statuses into the 'address_status' table after  finding zero (this had not been include)
+         INSERT INTO address_status (status_name, description)
+VALUES ('current', 'Primary address'), ('old', 'Previous address');
+
+
+
+-- Option A: Update existing records instead of inserting (found an error of duplicate entries e.tc)
+UPDATE customer_address 
+SET address_status_id = @current_status 
+WHERE customer_id = 1 AND address_id = 1;
+
+-- For customer 2, update the address status to 'current'
+UPDATE customer_address 
+SET address_status_id = @current_status 
+WHERE customer_id = 2 AND address_id = 2;
+
+-- For customer 3, update the address status to 'current'
+UPDATE customer_address 
+SET address_status_id = @current_status 
+WHERE customer_id = 3 AND address_id = 3;
+
+-- Insert sample publishers into the 'publisher' table
+-- Each publisher has a unique name
+INSERT INTO publisher (publisher_name) VALUES 
+    -- Insert the publisher 'Longhorn Publishers'
+    ('Longhorn Publishers'), 
+    
+    -- Insert the publisher 'Butere Girls'
+    ('Butere Girls'), 
+    
+    -- Insert the publisher 'Story Moja'
+    ('Story Moja');
+
+    -- Insert book languages into the 'book_language' table
+-- Each language has a unique name
+INSERT INTO book_language (language_name) VALUES 
+    -- Insert the language 'Swahili'
+    ('Swahili'), 
+    
+    -- Insert the language 'English'
+    ('English'), 
+    
+    -- Insert the language 'French'
+    ('French');
+
+    -- Insert authors into the 'author' table
+-- Each author has a unique name
+INSERT INTO author (name) VALUES 
+    -- Insert the author 'Alifa Chokocho'
+    ('Alifa Chokocho'), 
+    
+    -- Insert the author 'Cleophas Malala'
+    ('Cleophas Malala'), 
+    
+    -- Insert the author 'Pauline Kea'
+    ('Pauline Kea');
+    
+    -- Insert sample books into the 'book' table
+-- Each book has a title, a language ID, and a publisher ID
+INSERT INTO book (title, language_id, publisher_id) VALUES 
+    -- Insert the book 'Tumbolisiloshiba' with language ID 1 and publisher ID 1
+    ('Tumbolisiloshiba', 1, 1), 
+    
+    -- Insert the book 'Echoes of War' with language ID 1 and publisher ID 2
+    ('Echoes of War', 1, 2), 
+    
+    -- Insert the book 'Kigogo' with language ID 1 and publisher ID 3
+    ('Kigogo', 1, 3);
+
+    -- Link books to authors in the 'book_author' table
+-- Each entry links a book to an author using their respective IDs
+INSERT INTO book_author (book_id, author_id) VALUES 
+    -- Link the book with ID 1 to the author with ID 1
+    (1, 1), 
+    
+    -- Link the book with ID 2 to the author with ID 2
+    (2, 2), 
+    
+    -- Link the book with ID 3 to the author with ID 3
+    (3, 3);
+
+    -- Insert shipping methods into the 'shipping_method' table
+-- Each shipping method has a name, cost, and delivery time in days
+INSERT INTO shipping_method (method_name, cost, delivery_time_days) VALUES 
+    -- Insert the 'Standard' shipping method with a cost of 5.99 and delivery time of 5 days
+    ('Standard', 5.99, 5), 
+    
+    -- Insert the 'Express' shipping method with a cost of 12.99 and delivery time of 2 days
+    ('Express', 12.99, 2), 
+    
+    -- Insert the 'International' shipping method with a cost of 24.99 and delivery time of 10 days
+    ('International', 24.99, 10);
+
+
+    -- Insert order statuses into the 'order_status' table
+-- Each status has a unique name and a description
+INSERT INTO order_status (status_name, description) VALUES 
+    -- Insert the 'Pending' status with a description
+    ('Pending', 'Order received but not processed'), 
+    
+    -- Insert the 'Processing' status with a description
+    ('Processing', 'Order is being prepared for shipment'), 
+    
+    -- Insert the 'Shipped' status with a description
+    ('Shipped', 'Order has been dispatched'), 
+    
+    -- Insert the 'Delivered' status with a description
+    ('Delivered', 'Order has been delivered to customer');
+
+    -- Insert sample orders into the 'cust_order' table
+-- Each order includes a customer ID, shipping address ID, shipping method ID, and the total order amount
+INSERT INTO cust_order (customer_id, shipping_address_id, shipping_method_id, order_total) VALUES 
+    -- Insert an order for customer ID 1 with shipping address ID 1, shipping method ID 1, and a total of 29.98
+    (1, 1, 1, 29.98), 
+    
+    -- Insert an order for customer ID 2 with shipping address ID 2, shipping method ID 2, and a total of 19.99
+    (2, 2, 2, 19.99), 
+    
+    -- Insert an order for customer ID 3 with shipping address ID 3, shipping method ID 3, and a total of 49.97
+    (3, 3, 3, 49.97);
+
+    -- Insert order history into the 'order_history' table
+-- Each entry includes an order ID, status ID, and notes about the order's progress
+INSERT INTO order_history (order_id, status_id, notes) VALUES 
+    -- Record the 'New order received' status for order ID 1
+    (1, 1, 'New order received'), 
+    
+    -- Record the 'Processing order' status for order ID 1
+    (1, 2, 'Processing order'), 
+    
+    -- Record the 'New order received' status for order ID 2
+    (2, 1, 'New order received'), 
+    
+    -- Record the 'New order received' status for order ID 3
+    (3, 1, 'New order received');
+
+    -- Query: Retrieve all books written by a specific author
+-- This query tests the relationship between the 'book', 'author', and 'book_author' tables
+SELECT 
+    b.title AS book_title, 
+    a.name AS author_name
+FROM 
+    book b
+JOIN 
+    book_author ba ON b.book_id = ba.book_id
+JOIN 
+    author a ON ba.author_id = a.author_id
+WHERE 
+    a.name = 'Alifa Chokocho';
+
+-- Query: Retrieve the order history for a specific customer
+-- This query tests the relationships between 'customer', 'cust_order', 'order_line', 'book', 'order_history', and 'order_status' tables
+SELECT 
+    c.first_name AS customer_first_name, 
+    c.last_name AS customer_last_name, 
+    o.order_id, 
+    o.order_date, 
+    os.status_name AS order_status, 
+    ol.quantity AS book_quantity, 
+    b.title AS book_title
+FROM 
+    customer c
+JOIN 
+    cust_order o ON c.customer_id = o.customer_id
+JOIN 
+    order_line ol ON o.order_id = ol.order_id
+JOIN 
+    book b ON ol.book_id = b.book_id
+JOIN 
+    order_history oh ON o.order_id = oh.order_id
+JOIN 
+    order_status os ON oh.status_id = os.status_id
+WHERE 
+    c.customer_id = 1;
