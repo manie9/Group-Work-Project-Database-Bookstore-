@@ -376,3 +376,94 @@ JOIN
     order_status os ON oh.status_id = os.status_id
 WHERE 
     c.customer_id = 1;
+   -- Query: Calculate the total sales by each customer
+-- This query tests the relationship between 'customer' and 'cust_order' tables
+SELECT 
+    c.first_name AS customer_first_name, 
+    c.last_name AS customer_last_name, 
+    SUM(o.order_total) AS total_spent
+FROM 
+    customer c
+JOIN 
+    cust_order o ON c.customer_id = o.customer_id
+GROUP BY 
+    c.customer_id, c.first_name, c.last_name;
+
+    -- Create an admin user with full privileges on the 'bookstore' database
+CREATE USER 'bookstore_admin'@'localhost' IDENTIFIED BY 'secure_password';
+GRANT ALL PRIVILEGES ON bookstore.* TO 'bookstore_admin'@'localhost';
+
+-- Create a read-only user for generating reports
+CREATE USER 'bookstore_report'@'localhost' IDENTIFIED BY 'readonly_pass';
+GRANT SELECT ON bookstore.* TO 'bookstore_report'@'localhost';
+
+-- Apply the changes to ensure permissions are updated
+FLUSH PRIVILEGES;
+
+
+-- Comprehensive Guide to Database Testing and Validation
+-- Step 1: Verifying Foreign Key Relationships
+
+-- Test Case 1: Attempt to insert an order with a non-existent customer_id
+-- This should fail because the customer_id 999 does not exist in the 'customer' table
+INSERT INTO cust_order (customer_id, shipping_address_id, shipping_method_id, order_total) 
+VALUES (999, 1, 1, 29.99);
+
+-- Test Case 2: Attempt to link a customer to a non-existent address_id
+-- This should fail because the address_id 999 does not exist in the 'address' table
+INSERT INTO customer_address (customer_id, address_id, address_status_id)
+VALUES (1, 999, 1);
+
+-- Comprehensive Guide to Database Testing and Validation
+-- Step 2: Test Orphan Records Prevention
+
+-- Test Case 1: Attempt to delete a customer who has existing orders
+-- This should fail because the customer_id 1 is referenced in the 'cust_order' table
+DELETE FROM customer WHERE customer_id = 1;
+
+-- Test Case 2: Verify the ON DELETE behavior for foreign key constraints
+-- This query retrieves all foreign key relationships in the 'bookstore' database
+SELECT 
+    TABLE_NAME AS referencing_table, 
+    COLUMN_NAME AS referencing_column, 
+    REFERENCED_TABLE_NAME AS referenced_table, 
+    REFERENCED_COLUMN_NAME AS referenced_column
+FROM 
+    INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+WHERE 
+    TABLE_SCHEMA = 'bookstore' 
+    AND REFERENCED_TABLE_NAME IS NOT NULL;
+
+
+    -- Comprehensive Guide to Database Testing and Validation
+-- Step 3: Testing Edge Cases
+
+-- Test Case 1: Query with impossible conditions
+-- This query should return an empty result set as no book with the specified title exists
+SELECT * 
+FROM book 
+WHERE title = 'Non-existent Book Title';
+
+-- Test Case 2: Aggregations with no data
+-- This query should return NULL as there are no records matching the specified condition
+SELECT AVG(price) AS average_price 
+FROM order_line 
+WHERE order_id = 999;
+
+-- Comprehensive Guide to Database Testing and Validation
+-- Step 4: Invalid Data Tests
+
+-- Test Case 1: Data type violations
+-- This should fail because the title expects a string and language_id expects an integer
+INSERT INTO book (title, language_id) 
+VALUES (123, 'not-a-number');
+
+-- Test Case 2: Constraint violations
+-- This should fail because the email column does not allow NULL values
+INSERT INTO customer (email) 
+VALUES (NULL);
+
+-- Test Case 3: Unique constraint violations
+-- This should fail because the email 'louay@gmail.com' already exists in the 'customer' table
+INSERT INTO customer (email) 
+VALUES ('louay@gmail.com');
